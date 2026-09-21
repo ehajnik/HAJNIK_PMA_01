@@ -1,16 +1,51 @@
+import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function Index() {
+  const [tasks, setTasks] = useState<
+    { id: number; text: string; completed: boolean }[]
+  >([]);
+  const [newTask, setNewTask] = useState("");
+
+  function handleNewTask(text: string) {
+    setNewTask(text);
+  }
+
+  function handleAddTask() {
+    const text = newTask.trim();
+    if (!text) {
+      return;
+    }
+
+    setTasks((prevTasks) => [
+      ...prevTasks,
+      { id: Date.now(), text, completed: false },
+    ]);
+    setNewTask("");
+  }
+
   return (
     <View style={styles.appContainer}>
       <View style={styles.tasksContainer}>
         <View style={styles.tasksHeader}>
           <Text style={styles.tasksTitle}>Úlohy</Text>
         </View>
+        {tasks.map((task) => (
+          <View key={task.id} style={styles.task}>
+            <Text style={styles.taskText}>{task.text}</Text>
+          </View>
+        ))}
       </View>
       <View style={styles.inputContainer}>
-        <TextInput style={styles.input} placeholder="Pridaj novú úlohu" />
-        <Pressable style={styles.button}><Text style={styles.buttonText}>Pridať</Text></Pressable>
+        <TextInput
+          style={styles.input}
+          placeholder="Pridaj novú úlohu"
+          value={newTask}
+          onChangeText={handleNewTask}
+        />
+        <Pressable style={styles.button} onPress={handleAddTask}>
+          <Text style={styles.buttonText}>Pridať</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -31,7 +66,7 @@ const styles = StyleSheet.create({
   },
   tasksHeader: {
     backgroundColor: "#fff",
-    padding: 2,
+    paddingHorizontal: 16,
     paddingTop: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
@@ -42,14 +77,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 16,
     marginTop: 16,
-    marginLeft: 16,
   },
   inputContainer: {
     padding: 16,
-    paddingLeft: 20,
-    paddingRight: 20,
     paddingBottom: 32,
-    borderTopWidth: 2,
+    borderTopWidth: 1,
     borderTopColor: "#ccc",
     flex: 1,
     flexDirection: "row",
@@ -80,5 +112,22 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "Roboto",
     fontSize: 16,
+  },
+  task: {
+    padding: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderColor: "#ccc",
+    borderWidth: 1,
+  },
+  taskText: {
+    fontSize: 16,
+    fontFamily: "Roboto",
+    color: "#000",
   },
 });
