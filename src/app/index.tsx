@@ -1,133 +1,128 @@
+import * as Crypto from "expo-crypto";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  Pressable,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import InputContainer from "../components/InputContainer";
+import Task from "../components/Task";
+import { colors, radius, sizing } from "../colors";
+
+type Task = {
+  id: string;
+  text: string;
+  completed: boolean;
+};
 
 export default function Index() {
-  const [tasks, setTasks] = useState<
-    { id: number; text: string; completed: boolean }[]
-  >([]);
-  const [newTask, setNewTask] = useState("");
-
-  function handleNewTask(text: string) {
-    setNewTask(text);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  function handleDeleteTask(id: string) {
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
   }
 
-  function handleAddTask() {
-    const text = newTask.trim();
-    if (!text) {
-      return;
-    }
-
+  function handleAddTask(text: string) {
     setTasks((prevTasks) => [
       ...prevTasks,
-      { id: Date.now(), text, completed: false },
+      { id: Crypto.randomUUID(), text, completed: false },
     ]);
-    setNewTask("");
   }
 
+  function handleCompleteTask(id: string) {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task,
+      ),
+    );
+  }
+
+  const sortedTasks = [...tasks].sort(
+    (a, b) => Number(a.completed) - Number(b.completed),
+  );
+
   return (
-    <View style={styles.appContainer}>
-      <View style={styles.tasksContainer}>
-        <View style={styles.tasksHeader}>
-          <Text style={styles.tasksTitle}>Úlohy</Text>
-        </View>
-        {tasks.map((task) => (
-          <View key={task.id} style={styles.task}>
-            <Text style={styles.taskText}>{task.text}</Text>
-          </View>
-        ))}
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Pridaj novú úlohu"
-          value={newTask}
-          onChangeText={handleNewTask}
+    <SafeAreaView style={styles.appContainer} edges={["top", "bottom"]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.tasksContainer}
+        keyboardVerticalOffset={10}
+      >
+        <FlatList
+          data={sortedTasks}
+          keyExtractor={(item: Task) => item.id}
+          renderItem={({ item }: { item: Task }) => (
+            <Task
+              id={item.id}
+              text={item.text}
+              completed={item.completed}
+              onDelete={handleDeleteTask}
+              onComplete={handleCompleteTask}
+            />
+          )}
+          ListHeaderComponent={<Text style={styles.tasksTitle}>Úlohy</Text>}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>Zatiaľ žiadne úlohy</Text>
+          }
+          showsVerticalScrollIndicator={false}
         />
-        <Pressable style={styles.button} onPress={handleAddTask}>
-          <Text style={styles.buttonText}>Pridať</Text>
+        <Pressable style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]} onPress={() => setIsModalVisible(true)}>
+          <Ionicons name="add" size={sizing.icon} color="#fff" />
+          <Text style={styles.addButtonText}>Nová úloha</Text>
         </Pressable>
-      </View>
-    </View>
+      </KeyboardAvoidingView>
+      <InputContainer onAdd={handleAddTask} isModalVisible={isModalVisible} setIsModalVisible={setIsModalVisible} />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   appContainer: {
     flex: 1,
-    backgroundColor: "#fff",
-    fontFamily: "Roboto",
-    fontSize: 16,
+    backgroundColor: colors.bg,
   },
   tasksContainer: {
-    flex: 10,
-    backgroundColor: "#f5f5f5",
-    fontFamily: "Roboto",
-    fontSize: 16,
-  },
-  tasksHeader: {
-    backgroundColor: "#fff",
-    paddingHorizontal: 16,
+    flex: 1,
+    paddingHorizontal: 20,
     paddingTop: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
   },
   tasksTitle: {
-    fontFamily: "Roboto",
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 16,
-    marginTop: 16,
+    fontFamily: "DMSans_700Bold",
+    fontSize: 34,
+    color: colors.text,
+    marginBottom: 20,
+    marginTop: 8,
   },
-  inputContainer: {
-    padding: 16,
-    paddingBottom: 32,
-    borderTopWidth: 1,
-    borderTopColor: "#ccc",
-    flex: 1,
+  emptyText: {
+    fontFamily: "DMSans_400Regular",
+    fontSize: sizing.text,
+    color: colors.muted,
+    marginTop: 8,
+  },
+  addButtonText: {
+    fontFamily: "DMSans_600SemiBold",
+    fontSize: sizing.text,
+    color: "#fff",
+  },
+  addButton: {
+    position: "absolute",
+    right: 20,
+    bottom: 12,
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
-    alignItems: "center",
-  },
-  input: {
-    flex: 4,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 16,
-    borderRadius: 16,
-    fontFamily: "Roboto",
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: "#000",
-    flex: 1,
-    color: "#fff",
-    padding: 8,
-    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    height: 52,
+    height: sizing.buttonHeight,
+    paddingHorizontal: 18,
+    gap: 8,
+    backgroundColor: colors.button,
+    borderRadius: radius.pill,
   },
-  buttonText: {
-    color: "#fff",
-    fontFamily: "Roboto",
-    fontSize: 16,
-  },
-  task: {
-    padding: 20,
-    paddingLeft: 20,
-    paddingRight: 20,
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: "#fff",
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderColor: "#ccc",
-    borderWidth: 1,
-  },
-  taskText: {
-    fontSize: 16,
-    fontFamily: "Roboto",
-    color: "#000",
+  addButtonPressed: {
+    opacity: 0.8,
   },
 });
