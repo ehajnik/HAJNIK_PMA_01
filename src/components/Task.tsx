@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, radius, sizing } from "../colors";
+import { colors, radius, sizing } from "../constants";
 
 type TaskProps = {
   id: string;
@@ -10,7 +10,13 @@ type TaskProps = {
   onComplete: (id: string) => void;
 };
 
-export default function Task({ id, text, completed, onDelete, onComplete }: TaskProps) {
+export default function Task({
+  id,
+  text,
+  completed,
+  onDelete,
+  onComplete,
+}: TaskProps) {
   return (
     <Pressable
       style={({ pressed }) => [
@@ -18,6 +24,7 @@ export default function Task({ id, text, completed, onDelete, onComplete }: Task
         completed && styles.taskCompleted,
         pressed && styles.taskPressed,
       ]}
+      onPress={() => onComplete(id)}
     >
       <Text style={[styles.taskText, completed && styles.taskTextCompleted]}>
         {text}
@@ -76,7 +83,6 @@ const styles = StyleSheet.create({
   },
   taskText: {
     flex: 1,
-    fontFamily: "DMSans_400Regular",
     fontSize: sizing.text,
     lineHeight: sizing.textLineHeight,
     color: colors.text,

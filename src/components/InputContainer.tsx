@@ -9,27 +9,22 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, radius, sizing } from "../colors";
+import { colors, radius, sizing } from "../constants";
 
 const INPUT_MIN_HEIGHT = 120;
 const INPUT_MAX_HEIGHT = 280;
 
 type InputContainerProps = {
   onAdd: (text: string) => void;
-  isModalVisible: boolean;
-  setIsModalVisible: (isModalVisible: boolean) => void;
 };
 
-export default function InputContainer({
-  onAdd,
-  isModalVisible,
-  setIsModalVisible,
-}: InputContainerProps) {
+export default function InputContainer({ onAdd }: InputContainerProps) {
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [newTask, setNewTask] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [inputHeight, setInputHeight] = useState(INPUT_MIN_HEIGHT);
 
-  function handleClose() {
+  function resetForm() {
     setNewTask("");
     setInputHeight(INPUT_MIN_HEIGHT);
     setIsModalVisible(false);
@@ -42,75 +37,106 @@ export default function InputContainer({
     }
 
     onAdd(text);
-    setNewTask("");
-    setInputHeight(INPUT_MIN_HEIGHT);
-    setIsModalVisible(false);
+    resetForm();
   }
 
   return (
-    <Modal visible={isModalVisible} animationType="slide" transparent={true}>
-      <SafeAreaView style={styles.inputContainer}>
-        <View style={styles.header}>
-          <Ionicons name="pencil" size={28} color={colors.text} />
-          <Text style={styles.title}>Pridaj novú úlohu</Text>
-        </View>
-        <TextInput
-          style={[
-            styles.input,
-            { height: inputHeight },
-            isFocused && styles.focused,
-          ]}
-          maxLength={200}
-          placeholder="Pridaj novú úlohu"
-          placeholderTextColor={colors.muted}
-          value={newTask}
-          onChangeText={setNewTask}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          multiline
-          textAlignVertical="top"
-          onContentSizeChange={(event) => {
-            const nextHeight = event.nativeEvent.contentSize.height;
-            setInputHeight(
-              Math.min(
-                INPUT_MAX_HEIGHT,
-                Math.max(INPUT_MIN_HEIGHT, nextHeight),
-              ),
-            );
-          }}
-        />
-        <View style={styles.buttonContainer}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.addButton,
-              pressed && styles.addButtonPressed,
+    <>
+      <Pressable
+        style={({ pressed }) => [
+          styles.openButton,
+          pressed && styles.openButtonPressed,
+        ]}
+        onPress={() => setIsModalVisible(true)}
+      >
+        <Ionicons name="add" size={sizing.icon} color="#fff" />
+        <Text style={styles.openButtonText}>Nová úloha</Text>
+      </Pressable>
+      <Modal visible={isModalVisible} animationType="slide" transparent>
+        <SafeAreaView style={styles.inputContainer}>
+          <View style={styles.header}>
+            <Ionicons name="pencil" size={28} color={colors.text} />
+            <Text style={styles.title}>Pridaj novú úlohu</Text>
+          </View>
+          <TextInput
+            style={[
+              styles.input,
+              { height: inputHeight },
+              isFocused && styles.focused,
             ]}
-            onPress={handleAdd}
-          >
-            <Ionicons name="add" size={sizing.icon} color="#fff" />
-            <Text style={styles.addButtonText}>Pridať</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.closeButton,
-              pressed && styles.closeButtonPressed,
-            ]}
-            onPress={handleClose}
-          >
-            <Ionicons
-              name="close"
-              size={sizing.icon}
-              color={colors.closeText}
-            />
-            <Text style={styles.closeButtonText}>Zavrieť</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    </Modal>
+            maxLength={200}
+            placeholder="Pridaj novú úlohu"
+            placeholderTextColor={colors.muted}
+            value={newTask}
+            onChangeText={setNewTask}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            multiline
+            textAlignVertical="top"
+            onContentSizeChange={(event) => {
+              const nextHeight = event.nativeEvent.contentSize.height;
+              setInputHeight(
+                Math.min(
+                  INPUT_MAX_HEIGHT,
+                  Math.max(INPUT_MIN_HEIGHT, nextHeight),
+                ),
+              );
+            }}
+          />
+          <View style={styles.buttonContainer}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.addButton,
+                pressed && styles.addButtonPressed,
+              ]}
+              onPress={handleAdd}
+            >
+              <Ionicons name="add" size={sizing.icon} color="#fff" />
+              <Text style={styles.addButtonText}>Pridať</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.closeButton,
+                pressed && styles.closeButtonPressed,
+              ]}
+              onPress={resetForm}
+            >
+              <Ionicons
+                name="close"
+                size={sizing.icon}
+                color={colors.closeText}
+              />
+              <Text style={styles.closeButtonText}>Zavrieť</Text>
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  openButton: {
+    position: "absolute",
+    right: 20,
+    bottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: sizing.buttonHeight,
+    paddingHorizontal: 18,
+    gap: 8,
+    backgroundColor: colors.button,
+    borderRadius: radius.pill,
+  },
+  openButtonPressed: {
+    opacity: 0.8,
+  },
+  openButtonText: {
+    fontWeight: "600",
+    fontSize: sizing.text,
+    color: "#fff",
+  },
   inputContainer: {
     flex: 1,
     justifyContent: "center",
@@ -119,7 +145,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   title: {
-    fontFamily: "DMSans_600SemiBold",
+    fontWeight: "600",
     fontSize: 30,
     color: colors.text,
     textAlign: "center",
@@ -132,7 +158,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 14,
-    fontFamily: "DMSans_400Regular",
     fontSize: sizing.text,
     lineHeight: sizing.textLineHeight,
     color: colors.text,
@@ -169,12 +194,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.closePressed,
   },
   addButtonText: {
-    fontFamily: "DMSans_600SemiBold",
+    fontWeight: "600",
     fontSize: sizing.text,
     color: "#fff",
   },
   closeButtonText: {
-    fontFamily: "DMSans_600SemiBold",
+    fontWeight: "600",
     fontSize: sizing.text,
     color: colors.closeText,
   },

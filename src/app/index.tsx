@@ -1,28 +1,20 @@
 import * as Crypto from "expo-crypto";
 import { useState } from "react";
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  Pressable,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import InputContainer from "../components/InputContainer";
 import Task from "../components/Task";
-import { colors, radius, sizing } from "../colors";
+import { colors, sizing } from "../constants";
 
-type Task = {
+type TaskItem = {
   id: string;
   text: string;
   completed: boolean;
 };
 
 export default function Index() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+
   function handleDeleteTask(id: string) {
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
   }
@@ -48,19 +40,13 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.appContainer} edges={["top", "bottom"]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.tasksContainer}
-        keyboardVerticalOffset={10}
-      >
+      <View style={styles.tasksContainer}>
         <FlatList
           data={sortedTasks}
-          keyExtractor={(item: Task) => item.id}
-          renderItem={({ item }: { item: Task }) => (
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
             <Task
-              id={item.id}
-              text={item.text}
-              completed={item.completed}
+              {...item}
               onDelete={handleDeleteTask}
               onComplete={handleCompleteTask}
             />
@@ -71,12 +57,8 @@ export default function Index() {
           }
           showsVerticalScrollIndicator={false}
         />
-        <Pressable style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]} onPress={() => setIsModalVisible(true)}>
-          <Ionicons name="add" size={sizing.icon} color="#fff" />
-          <Text style={styles.addButtonText}>Nová úloha</Text>
-        </Pressable>
-      </KeyboardAvoidingView>
-      <InputContainer onAdd={handleAddTask} isModalVisible={isModalVisible} setIsModalVisible={setIsModalVisible} />
+        <InputContainer onAdd={handleAddTask} />
+      </View>
     </SafeAreaView>
   );
 }
@@ -92,37 +74,15 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   tasksTitle: {
-    fontFamily: "DMSans_700Bold",
+    fontWeight: "700",
     fontSize: 34,
     color: colors.text,
     marginBottom: 20,
     marginTop: 8,
   },
   emptyText: {
-    fontFamily: "DMSans_400Regular",
     fontSize: sizing.text,
     color: colors.muted,
     marginTop: 8,
-  },
-  addButtonText: {
-    fontFamily: "DMSans_600SemiBold",
-    fontSize: sizing.text,
-    color: "#fff",
-  },
-  addButton: {
-    position: "absolute",
-    right: 20,
-    bottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    height: sizing.buttonHeight,
-    paddingHorizontal: 18,
-    gap: 8,
-    backgroundColor: colors.button,
-    borderRadius: radius.pill,
-  },
-  addButtonPressed: {
-    opacity: 0.8,
   },
 });
