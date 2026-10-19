@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Sortable from "react-native-sortables";
 import { colors, radius, sizing } from "../constants";
 
 type TaskProps = {
@@ -18,17 +19,20 @@ export default function Task({
   onComplete,
 }: TaskProps) {
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.task,
-        completed && styles.taskCompleted,
-        pressed && styles.taskPressed,
-      ]}
-      onPress={() => onComplete(id)}
-    >
-      <Text style={[styles.taskText, completed && styles.taskTextCompleted]}>
-        {text}
-      </Text>
+    <View style={[styles.task, completed && styles.taskCompleted]}>
+      <Sortable.Handle>
+        <View style={styles.dragHandle} hitSlop={10}>
+          <Ionicons name="menu" size={sizing.icon} color={colors.muted} />
+        </View>
+      </Sortable.Handle>
+      <Pressable
+        style={styles.taskTextPressable}
+        onPress={() => onComplete(id)}
+      >
+        <Text style={[styles.taskText, completed && styles.taskTextCompleted]}>
+          {text}
+        </Text>
+      </Pressable>
       <View style={styles.taskActionButtonContainer}>
         <Pressable
           style={({ pressed }) => [
@@ -58,7 +62,7 @@ export default function Task({
           <Ionicons name="close" size={sizing.icon} color={colors.surface} />
         </Pressable>
       </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -68,7 +72,6 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 18,
     borderRadius: radius.md,
-    marginBottom: 10,
     borderWidth: 1,
     borderColor: colors.border,
     flexDirection: "row",
@@ -81,8 +84,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.completed,
     borderColor: colors.completedBorder,
   },
-  taskText: {
+  dragHandle: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 4,
+  },
+  taskTextPressable: {
     flex: 1,
+  },
+  taskText: {
     fontSize: sizing.text,
     lineHeight: sizing.textLineHeight,
     color: colors.text,
@@ -110,9 +120,6 @@ const styles = StyleSheet.create({
   },
   checkboxButtonPressed: {
     backgroundColor: colors.addPressed,
-  },
-  taskPressed: {
-    borderColor: colors.button,
   },
   closeButton: {
     backgroundColor: colors.danger,
